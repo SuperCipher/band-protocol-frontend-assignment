@@ -21,25 +21,27 @@ async function fetchGraphQL(operationsDoc: any, operationName: any, variables: a
   return await result.json();
 }
 
-function fetchMyQuery() {
+function fetchMyQuery(first: number, offset: number, sort: string="asc", sortBy: string="joined_date") {
   return fetchGraphQL(
     `
-      query MyQuery {
-        queryUser(order: {asc: joined_date}, first: 3, offset: 3) {
+      query ListUser {
+        queryUser(order: {${sort}: ${sortBy}}, first: ${first}, offset: ${offset}) {
           id
-          username
         }
       }
     `,
-    "MyQuery",
+    "ListUser",
     {}
   );
 }
 
-var elm = Elm.Main.init({ node: document.querySelector("main"),  flags: {}});
+var elm = Elm.Main.init({ node: document.querySelector("main"), flags: {} });
+
 
 async function main() {
-      elm.ports.recievedPage.send(1);
+  fetchMyQuery(3, 3).then((fullfilled) => console.log('FULLFILLED', fullfilled.data.queryUser)
+)
+  elm.ports.recievedPage.send(1);
 }
 
 main();
