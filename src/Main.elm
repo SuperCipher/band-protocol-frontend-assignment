@@ -10,6 +10,7 @@ import Json.Decode.Pipeline exposing (required)
 import Url
 
 
+offset = 3
 
 -- PORT
 
@@ -111,7 +112,7 @@ update msg model =
             ( { model | users = (List.append model.users receivedUsers )}, Cmd.none )
 
         NextPage currentPage ->
-            ( { model | currentPage = currentPage + 3 }, requestPage (currentPage + 3) )
+            ( { model | currentPage = currentPage + offset }, requestPage (currentPage + offset) )
 
         _ ->
             ( model, Cmd.none )
@@ -128,8 +129,8 @@ view model =
         [ div [ Attr.class "h-full min-h-screen flex flex-col" ]
             [ div [ Attr.class "relative max-w-7xl mx-auto px-4 focus:outline-none sm:px-3 md:px-5" ]
                 [ button [ Attr.class "bg-blue-300" ] [ text "Delete all" ]
-                , button [ onClick (NextPage model.currentPage) ] [ text "next page" ]
                 , div [] <| List.map (\user -> div [] [ text user.id ]) model.users
+                , button [ onClick (NextPage model.currentPage) ] [ text "next page" ]
                 ]
             ]
         ]

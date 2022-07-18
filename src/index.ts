@@ -1,5 +1,8 @@
 import { Elm } from "./Main.elm";
 
+// TODO environment variables
+const OFFSET: number = 3
+
 async function fetchGraphQL(operationsDoc: any, operationName: any, variables: any) {
   // TODO: environment variables this
   const result = await fetch(
@@ -39,7 +42,7 @@ var elm = Elm.Main.init({ node: document.querySelector("main"), flags: {} });
 
 
 async function main() {
-  fetchMyQuery(3, 3).then((fullfilled) => {
+  fetchMyQuery(3, 0).then((fullfilled) => {
     console.log('FULLFILLED', fullfilled.data.queryUser)
     elm.ports.recievedPage.send(fullfilled.data.queryUser);
   }
