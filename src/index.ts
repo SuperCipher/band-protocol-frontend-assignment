@@ -44,8 +44,8 @@ async function main() {
     elm.ports.recievedPage.send(fullfilled.data.queryUser);
   }
   )
-  elm.ports.requestPage.subscribe((message) => {
-    fetchMyQuery(3, 3).then((fullfilled) => {
+  elm.ports.requestPage.subscribe((currentPage: number) => {
+    fetchMyQuery(3, currentPage).then((fullfilled) => {
       console.log('FULLFILLED', fullfilled.data.queryUser)
       elm.ports.recievedPage.send(fullfilled.data.queryUser);
     })
