@@ -12,6 +12,10 @@ import { WebSocketLink } from "@apollo/link-ws";
 
 import { useSubscription, gql } from "@apollo/client";
 
+import { SubscriptionClient } from 'subscriptions-transport-ws';
+
+
+// Should be in database too
 const httpLink = new HttpLink({
   uri: "http://green-feather-500032.ap-south-1.aws.cloud.dgraph.io/graphql", // Or your Slash GraphQL endpoint (if you're using Slash GraphQL)
 });
@@ -84,25 +88,56 @@ function fetchMyQuery(first: number, offset: number, sort: string = "asc", sortB
 }
 
 function subscribeQuery(first: number, offset: number, sort: string = "asc", sortBy: string = "joined_date") {
-  return useSubscription(
-    `
-      subscription {
-        queryUser(order: {${sort}: ${sortBy}}, first: ${first}, offset: ${offset}) {
-          id
-        }
-      }
-    `
-  );
+  // return useSubscription(
+  //   gql`
+  //     subscription {
+  //       queryUser(order: {${sort}: ${sortBy}}, first: ${first}, offset: ${offset}) {
+  //         id
+  //       }
+  //     }
+  //   `
+  // );
+  // // /// call the "subscribe" method on Apollo Client
+  this.subscriptionObserver = client.subscribe({
+    query:gql`
+          subscription userSubscribed {
+            queryUser(order: {${sort}: ${sortBy}}, first: ${first}, offset: ${offset}) {
+              id
+            }
+          }
+        `,
+//         query:gql`
+//         subscription MySubscription {
+// queryUser {
+// id
+// joined_date
+// profile_image_hash
+// username
+// }
+// }
+//             `,
+    variables: {}
+  }).subscribe({
+    next(data) {
+    console.log('next DATA')
+
+    console.log('DATA', data)
+      // ... call updateQuery to integrate the new comment
+      // into the existing list of comments
+    },
+    error(err) { console.error('err', err); },
+  });
 }
 
 var elm = Elm.Main.init({ node: document.querySelector("main"), flags: {} });
-
-function subscribe(){
-  const { loading, error, data } = subscribeQuery();
-  return { loading, error, data }
-}
+//
+// function subscribe(){
+//   const { loading, error, data } = subscribeQuery(3,3);
+//   return { loading, error, data }
+// }
 async function main() {
-  console.log('SUBSCRIBE', subscribe())
+  subscribeQuery(3,3);
+  // console.log('SUBSCRIBE', )
 
   fetchMyQuery(3, 0).then((fullfilled) => {
     console.log('FULLFILLED', fullfilled.data.queryUser)
