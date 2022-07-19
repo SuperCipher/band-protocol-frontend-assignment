@@ -2,7 +2,7 @@ port module Main exposing (..)
 
 import Browser
 import Browser.Navigation
-import Html exposing (Html, button, div, text)
+import Html exposing (Html, button, div, text, p)
 import Html.Attributes as Attr
 import Html.Events exposing (onClick)
 import Json.Decode as Decode exposing (Decoder, decodeString, float, int, list, string)
@@ -103,16 +103,27 @@ type Msg
     | NextPageRecieved (List User)
     | DecodeError Decode.Error
     | NextPage Int
+    | PrevPage Int
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         NextPageRecieved receivedUsers ->
-            ( { model | users = (List.append model.users receivedUsers )}, Cmd.none )
+            ( { model | users = receivedUsers}, Cmd.none )
 
         NextPage currentPage ->
-            ( { model | currentPage = currentPage + offset }, requestPage (currentPage + offset) )
+          let
+            newPage = currentPage + 1
+            newPageOffset = newPage * offset
+          in
+            ( { model | currentPage = newPage }, requestPage (newPageOffset) )
+        PrevPage currentPage ->
+          let
+            newPage =   if currentPage - 1 < 0 then 0 else currentPage - 1
+            newPageOffset = newPage * offset
+          in
+            ( { model | currentPage = newPage }, requestPage (newPageOffset) )
 
         _ ->
             ( model, Cmd.none )
@@ -129,7 +140,9 @@ view model =
         [ div [ Attr.class "h-full min-h-screen flex flex-col" ]
             [ div [ Attr.class "relative max-w-7xl mx-auto px-4 focus:outline-none sm:px-3 md:px-5" ]
                 [ button [ Attr.class "bg-blue-300" ] [ text "Delete all" ]
+                , p [] [ text <| String.fromInt model.currentPage]
                 , div [] <| List.map (\user -> div [] [ text user.id ]) model.users
+                , button [ onClick (PrevPage model.currentPage) ] [ text "previous page" ]
                 , button [ onClick (NextPage model.currentPage) ] [ text "next page" ]
                 ]
             ]

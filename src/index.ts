@@ -25,6 +25,9 @@ const wsLink = process.browser
       uri: `wss://green-feather-500032.ap-south-1.aws.cloud.dgraph.io/graphql`, // Can test with your Slash GraphQL endpoint (if you're using Slash GraphQL)
       options: {
         reconnect: true,
+        connectionParams: () => ({
+          authToken: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJzL3Byb3h5IiwiZHVpZCI6IjB4M2NhMmI5YyIsImV4cCI6MTY1ODA1MDYwNiwiaXNzIjoicy9hcGkifQ.8zgxEzFduQmyw3C2hI9Te3gId3Ki5HybfmmzzXQqSdo`,
+        }),
       },
     })
   : null;
@@ -87,17 +90,7 @@ function fetchMyQuery(first: number, offset: number, sort: string = "asc", sortB
   );
 }
 
-function subscribeQuery(first: number, offset: number, sort: string = "asc", sortBy: string = "joined_date") {
-  // return useSubscription(
-  //   gql`
-  //     subscription {
-  //       queryUser(order: {${sort}: ${sortBy}}, first: ${first}, offset: ${offset}) {
-  //         id
-  //       }
-  //     }
-  //   `
-  // );
-  // // /// call the "subscribe" method on Apollo Client
+function subscribeQuery(executeAfter: Function , first: number, offset: number, sort: string = "asc", sortBy: string = "joined_date") {
   this.subscriptionObserver = client.subscribe({
     query:gql`
           subscription userSubscribed {
@@ -106,22 +99,13 @@ function subscribeQuery(first: number, offset: number, sort: string = "asc", sor
             }
           }
         `,
-//         query:gql`
-//         subscription MySubscription {
-// queryUser {
-// id
-// joined_date
-// profile_image_hash
-// username
-// }
-// }
-//             `,
     variables: {}
   }).subscribe({
-    next(data) {
+    next(queriedData) {
     console.log('next DATA')
 
-    console.log('DATA', data)
+    console.log('DATA', queriedData)
+    executeAfter(queriedData.data.queryUser)
       // ... call updateQuery to integrate the new comment
       // into the existing list of comments
     },
@@ -130,25 +114,11 @@ function subscribeQuery(first: number, offset: number, sort: string = "asc", sor
 }
 
 var elm = Elm.Main.init({ node: document.querySelector("main"), flags: {} });
-//
-// function subscribe(){
-//   const { loading, error, data } = subscribeQuery(3,3);
-//   return { loading, error, data }
-// }
-async function main() {
-  subscribeQuery(3,3);
-  // console.log('SUBSCRIBE', )
 
-  fetchMyQuery(3, 0).then((fullfilled) => {
-    console.log('FULLFILLED', fullfilled.data.queryUser)
-    elm.ports.recievedPage.send(fullfilled.data.queryUser);
-  }
-  )
+async function main() {
+  subscribeQuery(elm.ports.recievedPage.send,OFFSET,0);
   elm.ports.requestPage.subscribe((currentPage: number) => {
-    fetchMyQuery(3, currentPage).then((fullfilled) => {
-      console.log('FULLFILLED', fullfilled.data.queryUser)
-      elm.ports.recievedPage.send(fullfilled.data.queryUser);
-    })
+    subscribeQuery(elm.ports.recievedPage.send,OFFSET,currentPage);
   })
 
 }
