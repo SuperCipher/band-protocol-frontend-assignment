@@ -190,6 +190,7 @@ tableView users =
 
 
 -- VIEW
+-- TODO UI decoration
 
 
 view : Model -> Browser.Document Msg
